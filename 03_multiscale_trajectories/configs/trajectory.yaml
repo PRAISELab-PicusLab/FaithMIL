@@ -1,0 +1,51 @@
+# Trajectory-MIL (multi-scale) survival model: defaults for train_trajectory.py.
+# Every field can be overridden from the CLI; the effective config of a run is
+# saved next to its results (results/trajectory/<run>/<fold_k|holdout>/config.yaml).
+
+data:
+  splits_csv: splits/folds.csv
+  traj_root: trajectories
+  anchor_set: grid_L2_p224
+  levels: [5, 4]            # coarse -> fine. Staged plan: [5,4] -> [5,4,3] -> ... -> [5,4,3,2,1,0]
+  backbone: imagenet        # frozen encoder whose cached features feed every level ...
+  level_backbones: {}       # ... unless overridden per level, e.g. {0: prost40m, 1: prost40m}
+
+split:
+  mode: cv                  # cv: the 10 outer folds of the thumbnail baseline | holdout
+  val_fraction: 0.15        # cv only: stratified slice of the 9 training folds, for early stopping
+  holdout_train_folds: [0, 1, 2, 3, 4, 5, 6]
+  holdout_val_folds: [7]
+  holdout_test_folds: [8, 9]
+
+model:
+  hidden_dim: 128           # d: size of level tokens and trajectory embeddings
+  aggregator: transformer   # mlp | transformer | gru | lstm
+  n_layers: 1
+  n_heads: 4
+  attention_dim: 64
+  pooling: attention        # attention (reliability-weighted local scores) | mean (ablation)
+  dropout: 0.25
+  input_dropout: 0.1        # on the frozen features, per level
+  level_dropout: 0.1        # prob. of replacing a whole level token by a mask token (training)
+
+train:
+  bag_size: 256             # trajectories sampled per patient per step (full bags at evaluation)
+  batch_size: 64            # patients per Cox step (risk set); null = whole training set
+  max_epochs: 150
+  lr: 2.0e-4
+  weight_decay: 1.0e-2
+  scheduler: cosine         # cosine (with linear warmup) | none
+  warmup_epochs: 5
+  early_stopping_patience: 25
+  monitor: val_loss         # val_loss (as in the thumbnail baseline) | val_cindex
+  grad_clip: 1.0
+  eval_chunk: 4096          # trajectories per forward at evaluation
+
+outputs:
+  rmst_horizon_years: null  # null = longest follow-up in the training set
+  risk_group_quantiles: [0.3333, 0.6667]
+  shapley_permutations: 256
+  explain_splits: [test]    # per-case npz with scores/weights/Shapley/level occlusion
+
+seed: 42
+deterministic: true

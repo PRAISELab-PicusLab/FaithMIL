@@ -1,0 +1,37 @@
+__pycache__/
+*.py[cod]
+.venv*/
+.ipynb_checkpoints/
+
+# data / derived data (in case something is run from inside the repo)
+images/
+tissue-masks/
+thumbnails/
+trajectories/
+features/
+features_traj/
+pretrained/
+splits/
+splits_perm/
+training_labels.csv
+
+# results, reports, logs
+results*/
+reports/
+slurm/logs/
+*.log
+*.out
+*.err
+
+# binary artifacts
+*.npy
+*.npz
+*.pt
+*.pth
+*.torch
+*.safetensors
+*.tif
+*.tiff
+*.png
+*.jpg
+*.pdf

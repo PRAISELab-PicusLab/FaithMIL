@@ -1,0 +1,35 @@
+# Default hyperparameters for the LEOPARD thumbnail baseline.
+# Every field here can be overridden from the train.py CLI; the effective
+# config actually used for a run is always saved next to its results
+# (results/<task>/<backbone>/fold_<k>/config.yaml).
+
+data:
+  splits_csv: splits/folds.csv
+  image_size: 224          # change here (or --image-size) to try e.g. 512
+  val_fraction: 0.15        # fraction of the 9 training folds held out for early stopping
+
+model:
+  # null = use each backbone's own default (see src/backbones.py):
+  #   ResNet50 family      -> full fine-tuning
+  #   foundation models    -> frozen (0.3B-1.1B params can't be fine-tuned on ~450 images)
+  # Override explicitly with --freeze-backbone / --no-freeze-backbone.
+  freeze_backbone: null
+  amp: false                # fp16 autocast for the backbone forward; speeds up the large ViTs
+
+optim:
+  optimizer: adamw
+  lr: 1.0e-4                # used when the backbone is fine-tuned
+  lr_frozen: 1.0e-3         # used when the backbone is frozen (linear probe on fixed
+                            # features converges far too slowly at 1e-4). Same value for
+                            # every frozen backbone, so backbone comparisons stay fair.
+  weight_decay: 1.0e-4
+  batch_size: 16
+  max_epochs: 100
+  early_stopping_patience: 10
+  lr_scheduler: plateau      # plateau | cosine | none
+  lr_scheduler_patience: 5
+  lr_scheduler_factor: 0.5
+  num_workers: 4
+
+seed: 42
+deterministic: true
