@@ -1,8 +1,15 @@
-# OWL challenge (WACV 2027): BCR survival from prostatectomy WSIs
+# TRACE: Tree-Based Regional Attribution with Context Enrichment for Prostate Cancer Recurrence Prediction
 
-Predicting biochemical recurrence (BCR) after radical prostatectomy from H&E
-whole-slide images of 508 patients (event + follow-up time), evaluated with the
-C-index.
+TRACE predicts biochemical recurrence (BCR) after radical prostatectomy from H&E whole-slide images using a context-enriched, additive multiple-instance learning (MIL) model. It combines low-magnification tissue regions with higher-resolution child patches and decomposes patient risk into regional contributions.
+The paper evaluates the model using patient-level 10-fold cross-validation across 508 RUMC patients and 298 TCGA-PRAD patients. Both cohorts participate in training and testing across the folds; TCGA-PRAD is a second test population, rather than an external validation cohort.
+
+## Framework
+
+The proposed L2–L1 tree combines L2 parent regions (approximately 0.87 mm, 3.9 µm/px) with their L1 child patches (approximately 0.22 mm, 0.97 µm/px). A shared frozen encoder embeds both scales. Trainable adapters and gated attention pool the child features, which are fused with the parent features to form a context-enriched regional representation.
+Each region receives a local score and a patient-level attention weight. Patient risk is their weighted sum, trained with the Cox partial likelihood, and therefore has an exact decomposition into regional contributions. The explanation pipeline compares regional attribution methods through deletion tests and uses region-level Shapley values for the attribution map and key-region selection. Patient reports distinguish model contribution, recurring cohort tissue pattern, and histological concept match, with abstention when concept evidence is insufficient.
+
+## Repository structure
+The repository retains the numbered directories used during development. Thumbnail and trajectory experiments accompany the multi-scale pipeline described in the paper.
 
 | Folder | What it does |
 |---|---|
