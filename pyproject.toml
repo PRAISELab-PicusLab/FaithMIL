@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trace-mil"
+version = "1.0.0"
+description = "Context-enriched additive multiple instance learning with faithful explanations for prostate cancer recurrence"
+requires-python = ">=3.10"
+dependencies = [
+    "torch", "torchvision", "numpy", "pandas", "scikit-learn", "scipy", "lifelines", "matplotlib", "Pillow",
+    "tifffile", "imagecodecs", "timm", "open_clip_torch", "huggingface_hub", "safetensors",
+]
+
+[tool.setuptools]
+packages = ["trace_mil"]

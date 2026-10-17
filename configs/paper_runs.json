@@ -1,0 +1,23 @@
+{
+  "table1": {
+    "encoders": {"DINO (ours)": "dino", "H-optimus-0": "hoptimus0", "Prost40M": "prost40m"},
+    "levels": {"L3 (3.5 mm)": "L3", "L2 (0.87 mm)": "L2", "L1 (0.22 mm)": "L1", "L0 (54 um)": "L0"},
+    "run_pattern": "{level}_{encoder}"
+  },
+  "table2": {
+    "reference": "L1_dino",
+    "rows": [
+      ["L1", ["L1_dino"]],
+      ["L2", ["L2_dino"]],
+      ["L1 + L2 context", ["ctx2_dino"]],
+      ["L1 + L2 + L3 context", ["ctx3_dino"]]
+    ],
+    "faithfulness_aware": [
+      ["L1", ["faith_L1_dino", "faith_L1_dino_r2"]],
+      ["L2", ["faith_L2_dino", "faith_L2_dino_r2"]],
+      ["L1 + L2 context", ["faith_ctx2_dino", "faith_ctx2_dino_r2"]],
+      ["L1 + L2 + L3 context", ["faith_ctx3_dino", "faith_ctx3_dino_r2"]],
+      ["+ warm-up", ["faith_ctx3_warm_dino", "faith_ctx3_warm_dino_r2"]]
+    ]
+  }
+}

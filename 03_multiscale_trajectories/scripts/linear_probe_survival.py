@@ -1,1 +1,0 @@
-../../02_thumbnail_backbone_survival/scripts/linear_probe_survival.py
