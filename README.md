@@ -14,9 +14,7 @@ Data: RUMC (508 patients) and TCGA-PRAD (298 patients), 10-fold cross-validation
 
 The **Framework**:
 
-<img width="757" height="868" alt="image" src="https://github.com/user-attachments/assets/0fd884d1-8594-4dc4-b79c-c04837edd61c" />
-
-
+<img width="757" height="868" alt="image" src="./imgs/framework.png" />
 
 ## Install
 
