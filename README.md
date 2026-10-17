@@ -1,6 +1,6 @@
 # TRACE: The Price of Faithful Explanations in Multiple Instance Learning for Prostate Cancer Recurrence
 
-Code of the paper. We predict biochemical recurrence (BCR) after prostatectomy from one H&E slide per patient with an
+We predict biochemical recurrence (BCR) after prostatectomy from one H&E slide per patient with an
 **additive multi-scale MIL model**, and we measure, and train for, the **faithfulness of its explanations**.
 
 - Each 0.22 mm patch (L1) is read together with the surrounding tissue at a lower magnification (L2, optionally L3).
