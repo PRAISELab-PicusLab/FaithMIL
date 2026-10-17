@@ -12,6 +12,12 @@ We predict biochemical recurrence (BCR) after prostatectomy from one H&E slide p
 
 Data: RUMC (508 patients) and TCGA-PRAD (298 patients), 10-fold cross-validation, C-index within each cohort.
 
+The **Framework**:
+
+<img width="757" height="868" alt="image" src="https://github.com/user-attachments/assets/0fd884d1-8594-4dc4-b79c-c04837edd61c" />
+
+
+
 ## Install
 
 ```bash
