@@ -1,4 +1,4 @@
-# TRACE: The Price of Faithful Explanations in Multiple Instance Learning for Prostate Cancer Recurrence
+# The Price of Faithful Explanations in Multiple Instance Learning for Prostate Cancer Recurrence
 
 We predict biochemical recurrence (BCR) after prostatectomy from one H&E slide per patient with an
 **additive multi-scale MIL model**, and we measure, and train for, the **faithfulness of its explanations**.
