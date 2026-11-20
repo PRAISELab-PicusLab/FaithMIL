@@ -5,7 +5,7 @@
     "run_pattern": "{level}_{encoder}"
   },
   "table2": {
-    "reference": "L1_dino",
+    "references": {"L1": ["L1_dino"], "L2": ["L2_dino"]},
     "rows": [
       ["L1", ["L1_dino"]],
       ["L2", ["L2_dino"]],
@@ -18,6 +18,11 @@
       ["L1 + L2 context", ["faith_ctx2_dino", "faith_ctx2_dino_r2"]],
       ["L1 + L2 + L3 context", ["faith_ctx3_dino", "faith_ctx3_dino_r2"]],
       ["+ warm-up", ["faith_ctx3_warm_dino", "faith_ctx3_warm_dino_r2"]]
+    ],
+    "baselines": [
+      ["Mean pooling", ["mean_dino"]],
+      ["CLAM-SB", ["clam_sb_dino"]],
+      ["TransMIL (L2 tiles)", ["transmil_dino"]]
     ]
   }
 }

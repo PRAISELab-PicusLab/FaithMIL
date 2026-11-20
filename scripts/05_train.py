@@ -13,6 +13,10 @@ and, optionally, by the faithfulness-aware terms of the paper (lambda_s = lambda
 
     --suff-cox 0.5 --nec-var 0.5 --ent 0.3 --topk 0.1 [--faith-start-epoch 10]
 
+MIL baselines (C-index only, same protocol; see trace_mil/models.py):
+
+    --arch mean --views children      --arch clam_sb --views children      --arch transmil --views parents
+
     python scripts/05_train.py --run-name ctx3 --views children ctx2 ctx3 --save-models
 """
 import _repo  # noqa: F401
@@ -28,6 +32,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--root", default=None)
     ap.add_argument("--run-name", required=True)
+    ap.add_argument("--arch", default="additive", choices=["additive", "mean", "clam_sb", "transmil"],
+                    help="aggregator: the additive attention MIL of the paper or a MIL baseline")
     ap.add_argument("--views", nargs="+", default=["children"], choices=list(FEATURE_VIEWS))
     ap.add_argument("--encoder", default="dino", choices=["dino", "prost40m", "hoptimus0"])
     ap.add_argument("--max-groups", type=int, default=64, help="random L2 groups per patient and training step")
@@ -48,8 +54,8 @@ def main():
     ap.add_argument("--device", default=None)
     a = ap.parse_args()
     fc = FaithConfig(a.suff_cox, a.nec_var, a.ent, a.topk, a.faith_start_epoch)
-    cfg = TrainConfig(run_name=a.run_name, views=a.views, encoder=a.encoder, max_groups=a.max_groups, pool=a.pool,
-                      folds=a.folds, seed=a.seed, n_seeds=a.n_seeds, min_epochs=a.min_epochs, patience=a.patience,
+    cfg = TrainConfig(run_name=a.run_name, arch=a.arch, views=a.views, encoder=a.encoder, max_groups=a.max_groups,
+                      pool=a.pool, folds=a.folds, seed=a.seed, n_seeds=a.n_seeds, min_epochs=a.min_epochs, patience=a.patience,
                       max_epochs=a.max_epochs, save_models=a.save_models, faith=fc.asdict())
     run(Layout(a.root), cfg, a.device)
 

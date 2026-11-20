@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """DINO pre-training of the encoder of one level (see trace_mil/dino.py). Needs one GPU; resumes from its last epoch.
 
-    python scripts/03_train_dino.py --level 2          # 18 epochs (paper); level 1: 6, level 0: 6, level 3: 15
+    python scripts/03_train_dino.py --level 2          # 123 epochs (paper); level 1: 18, level 3: 68, level 0: 16
     python scripts/03_train_dino.py --level 2 --debug  # ~40 cases, 100 steps, saves an augmentation grid
 """
 import _repo  # noqa: F401

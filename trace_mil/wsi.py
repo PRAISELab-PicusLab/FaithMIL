@@ -1,15 +1,13 @@
 """Pyramid geometry, tile-level region reading and tissue masks (tifffile only).
 
-Facts verified on the slides of both cohorts:
-  * WSI level k has exactly 4**k x the L0 pixel spacing: every level's
-    XResolution tag is (10555189, 256 * 4**k) px/cm (L0 = 0.2425 um/px ...
-    L5 = 248.4 um/px). Level SHAPES are floor-rounded at every step, so
-    coordinates are always mapped with 4**k, never with shape ratios.
-  * The scanner built the pyramid by NEAREST-neighbour decimation at phase 0:
-    native L5 == L4[::4, ::4] up to JPEG noise (Pearson 0.98 on two 6-level
-    slides, vs 0.73 for 4x4 box averaging and <= 0.58 for any other phase).
-    So level-k pixel i IS L0 pixel 4**k * i, and the L5 missing from the 233
-    five-level slides can be reproduced with the scanner's own rule.
+Assumptions on the slides:
+  * WSI level k has exactly 4**k x the L0 pixel spacing (XResolution tag of
+    level k = L0 resolution / 4**k; the spacing is read from the tags of each
+    slide). Level SHAPES are floor-rounded at every step, so coordinates are
+    always mapped with 4**k, never with shape ratios.
+  * The pyramid is built by NEAREST-neighbour decimation at phase 0
+    (level-k pixel i IS L0 pixel 4**k * i), so a missing L5 can be
+    synthesized from L4 with the same rule.
   * All WSI levels are 512x512 JPEG (YCbCr) tiles. Decoding single tiles with
     TiffPage.decode is pixel-identical to tifffile's zarr store and ~2.5x
     faster; cold reads are GPFS-latency bound (~35 ms/tile), so parallel
@@ -182,7 +180,7 @@ class TissueMask:
     """Binary tissue mask at one mask pyramid level, with a summed-area table
     for O(1) tissue fractions of arbitrary L0 boxes.
 
-    mask_level=1 (7.8 um/px) resolves even the L0 patch (54 um = 7 px) and
+    mask_level=1 (~8 um/px) resolves even the L0 patch (54 um = 7 px) and
     keeps the int32 integral image small (~135 MB for the largest slide).
     """
 

@@ -35,7 +35,9 @@ from .layout import Layout
 
 MEAN, STD = (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
 GLOBAL, LOCAL = 224, 98
-EPOCHS = {2: 18, 1: 6, 0: 6, 3: 15}  # epochs used for the paper (about 14 M tiles seen at every level)
+TILES_SEEN = 14e6  # pre-training budget: about 14 M tiles seen at every level
+EPOCHS = {2: 123, 1: 18, 3: 68, 0: 16}  # epochs of the paper = round(TILES_SEEN / tiles of the level):
+# 114k L2, 794k L1, 205k L3 and 894k L0 tiles of the 298 TCGA-PRAD patients
 
 
 # ----------------------------------------------------------------------------- data

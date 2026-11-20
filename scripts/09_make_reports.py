@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """PDF report of patients (see trace_mil/report.py). Needs scripts/08_explain.py.
 
-    python scripts/09_make_reports.py --run ctx3_dino --cases case_radboud_0382 --figures
+    python scripts/09_make_reports.py --run ctx3_dino --cases TCGA-KK-A8IC --figures
     python scripts/09_make_reports.py --run ctx3_dino                      # every patient with explanations
 
 --figures also writes the attribution map and the strongest region as separate PDFs (figures of the paper).

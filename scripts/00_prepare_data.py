@@ -4,12 +4,12 @@
 Inputs (see the README for where to get them):
     images/<case>.tif, tissue-masks/<case>_tissue.tif
     one or more label CSVs with the columns case_id, event, follow_up_years (and optionally cohort); a trailing '.tif' of the
-    case id is removed, and a missing cohort is inferred from the id ('case_radboud_*' = RUMC, 'TCGA-*' = TCGA)
+    case id is removed, and a missing cohort is inferred from the id ('TCGA-*' = TCGA)
 
-    python scripts/00_prepare_data.py --labels labels_rumc.csv labels_tcga.csv
+    python scripts/00_prepare_data.py --labels labels_tcga.csv
 
-The folds are the ones of the paper (data/folds.csv: 10 folds stratified by event; RUMC and TCGA-PRAD patients are
-spread over the same folds). `--make-folds N` draws new ones instead: StratifiedKFold on the event within each cohort.
+The folds are the ones of the paper (data/folds.csv: 10 folds of the TCGA-PRAD patients, stratified by
+event). `--make-folds N` draws new ones instead: StratifiedKFold on the event.
 Cases without a slide or a mask are reported and dropped.
 """
 import _repo  # noqa: F401
@@ -26,8 +26,6 @@ REPO = Path(__file__).resolve().parents[1]
 
 
 def cohort_of(case: str) -> str:
-    if case.startswith("case_radboud_"):
-        return "RUMC"
     if case.startswith("TCGA-"):
         return "TCGA"
     raise ValueError(f"cannot infer the cohort of {case!r}; add a 'cohort' column to the labels")

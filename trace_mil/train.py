@@ -2,8 +2,7 @@
 
 For every outer fold: 15% of the training patients (stratified by event) are held out for model selection; `n_seeds`
 models are trained with different initialisations and bag samplings; the checkpoint of a model is the epoch at the peak
-of the 5-epoch moving average of the validation C-index, computed within each cohort and averaged with the number of
-events as weights; training stops after `patience` epochs without improvement (not before `min_epochs`). The risk of
+of the 5-epoch moving average of the validation C-index; training stops after `patience` epochs without improvement (not before `min_epochs`). The risk of
 each model is z-scored with the mean and standard deviation of its own training risks and the z-scores are averaged
 (the average of sums over patches is again a sum over patches, so the decomposition is preserved).
 
@@ -30,13 +29,14 @@ from .bank import assemble, load_bank, pool_rows
 from .faith import FaithConfig, faith_loss
 from .layout import Layout
 from .losses import cox_ph_loss
-from .models import AttentionMIL, build_model
+from .models import BASELINES, AttentionMIL, build_model
 from .utils import c_index, cohort_c_index, get_logger, load_folds, set_seed, train_val_split
 
 
 @dataclass
 class TrainConfig:
     run_name: str
+    arch: str = "additive"        # additive attention MIL (ours) or a MIL baseline: mean, clam_sb, transmil
     views: list = field(default_factory=lambda: ["children"])
     encoder: str = "dino"
     max_groups: int = 64          # random groups (L2 tiles) per patient and step during training
@@ -113,6 +113,8 @@ def train_seed(cfg: TrainConfig, bank, train_df, val_df, device, logger, seed: i
             risk, out = model(X, seg, len(bi))
             idx = torch.as_tensor(bi, device=device)
             loss = cox_ph_loss(risk, t[idx], e[idx])
+            if "inst_loss" in out:  # CLAM-SB instance clustering term
+                loss = loss + out["inst_loss"]
             if faith_on:
                 loss = loss + faith_loss(fc, out["g"], out["s"], out["w"], seg, risk, len(bi), t[idx], e[idx])
             opt.zero_grad(set_to_none=True)
@@ -155,6 +157,9 @@ def run(layout: Layout, cfg: TrainConfig, device=None) -> Path:
     bank, dims = load_bank(layout, df["case_id"].tolist(), cfg.encoder, cfg.views, cfg.pool, logger=logger)
     if cfg.pool and len(cfg.views) != 1:
         raise ValueError("a training pool is only supported for single-view models")
+    if cfg.arch != "additive":
+        if list(cfg.views) != BASELINES[cfg.arch] or cfg.pool or FaithConfig(**cfg.faith).any:
+            raise ValueError(f"{cfg.arch} needs --views {' '.join(BASELINES[cfg.arch])}, no pool and no faithfulness terms")
     (run_dir / "config.json").write_text(json.dumps({**asdict(cfg), "dims": dims}, indent=2))
     logger.info(f"config={asdict(cfg)}")
 

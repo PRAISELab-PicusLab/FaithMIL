@@ -49,8 +49,8 @@ def c_index(time, risk, event) -> float:
 
 
 def cohort_c_index(frame: pd.DataFrame, risk) -> float:
-    """C-index within each cohort, averaged with the number of events as weights (pairs across cohorts are never
-    formed: follow-up differs strongly between cohorts, and a mixed C-index would reward separating them)."""
+    """Harrell's C-index of the patients of the frame (computed per value of the 'cohort' column and averaged with the
+    number of events as weights, if the labels define more than one)."""
     num, den = 0.0, 0
     for _, g in frame.assign(risk=np.asarray(risk)).groupby("cohort"):
         ev = int(g.event.sum())

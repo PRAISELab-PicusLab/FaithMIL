@@ -14,7 +14,7 @@ Grid (single-level models at other levels)
 
         anchors/grid_L<k>/<case>.csv       anchor_id, x, y, gx, gy, tissue
 
-The tissue fraction is read on level 1 of the mask (7.8 um/px); area outside the slide counts as background.
+The tissue fraction is read on level 1 of the mask (~8 um/px); area outside the slide counts as background.
 """
 from __future__ import annotations
 

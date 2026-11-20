@@ -10,7 +10,7 @@ We predict biochemical recurrence (BCR) after prostatectomy from one H&E slide p
 - Faithfulness is tested by deletion and insertion at equal tissue area, and can be trained with extra loss terms.
 - A per-patient report separates what the model measured from what is inferred, and abstains when evidence is weak.
 
-Data: RUMC (508 patients) and TCGA-PRAD (298 patients), 10-fold cross-validation, C-index within each cohort.
+Data: TCGA-PRAD (298 patients), 10-fold cross-validation.
 
 The **Framework**:
 
@@ -29,15 +29,15 @@ the Hugging Face hub: accept its licence and log in first.
 
 Put in one folder, the **data root** (`--root`, or the environment variable `TRACE_DATA_ROOT`, default: current directory):
 
-- `images/<case>.tif`: pyramidal slides of both cohorts (level k has 4^k times the pixel size of level 0)
+- `images/<case>.tif`: pyramidal slides (level k has 4^k times the pixel size of level 0)
 - `tissue-masks/<case>_tissue.tif`: tissue masks
 - label CSVs with `case_id, event, follow_up_years`
 
-RUMC comes from the LEOPARD challenge release, TCGA-PRAD from the TCGA data portal with the BCR labels of Grisi et al.
+TCGA-PRAD comes from the TCGA data portal with the BCR labels of Grisi et al.
 (see the paper). Then:
 
 ```bash
-python scripts/00_prepare_data.py --labels labels_rumc.csv labels_tcga.csv
+python scripts/00_prepare_data.py --labels labels_tcga.csv
 ```
 
 This creates the table of cases and the folds of the paper (`data/folds.csv`). Everything else is written inside the data root.
@@ -57,7 +57,7 @@ This creates the table of cases and the folds of the paper (`data/folds.csv`). E
 | 7 | `07_ontology_concepts.py` | links the report concepts to NCI Thesaurus and UBERON terms |
 | 8 | `08_explain.py` | Shapley values of every patient and the cohort patterns |
 | 9 | `09_make_reports.py` | PDF report and figures of a patient |
-| 10 | `10_tables.py` | Tables 1 to 3 of the paper |
+| 10 | `10_tables.py` | Tables 1 to 3 of the paper, with 95% bootstrap confidence intervals |
 
 ## Models
 
@@ -69,6 +69,7 @@ A model is defined by which tiles are its instances (`--views`); their features 
 | L1 + L2 context | `--views children ctx2` |
 | L1 + L2 + L3 context | `--views children ctx2 ctx3` |
 | faithfulness-aware training | add `--suff-cox 0.5 --nec-var 0.5 --ent 0.3 --topk 0.1` (and `--faith-start-epoch 10` for the warm-up) |
+| MIL baselines: mean pooling, CLAM-SB, TransMIL | `--arch mean --views children`, `--arch clam_sb --views children`, `--arch transmil --views parents` |
 
 ```bash
 python scripts/05_train.py --run-name ctx3_dino --views children ctx2 ctx3 --save-models
