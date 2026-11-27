@@ -1,5 +1,5 @@
 FROM --platform=linux/amd64 pytorch/pytorch:2.13.0-cuda12.6-cudnn9-runtime AS trace_owl
-# Build context: the root of the TRACE repository (see do_build.sh), so that trace_mil/ can be copied.
+# Build context: the root of the FaithMIL repository (see do_build.sh), so that trace_mil/ can be copied.
 
 ENV PYTHONUNBUFFERED=1
 # No internet on Grand Challenge: never try to download weights at runtime

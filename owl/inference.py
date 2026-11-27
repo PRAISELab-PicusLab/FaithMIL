@@ -1,4 +1,4 @@
-"""TRACE for the OWL challenge: Grand Challenge "invoke" algorithm.
+"""FaithMIL for the OWL challenge: Grand Challenge "invoke" algorithm.
 
   init_model() -- called once at server startup (before /health returns 200): encoder, 30-member ensemble, calibration.
   run(model)   -- called for every /invoke: reads /input, writes the 4 outputs to /output.
@@ -145,7 +145,7 @@ def years_and_class(z: float, cal: dict):
 # ---------------------------------------------------------------------------- faithfulness notebook interface
 
 def get_args_parser():
-    p = argparse.ArgumentParser("TRACE OWL inference (faithfulness notebook mode)")
+    p = argparse.ArgumentParser("FaithMIL OWL inference (faithfulness notebook mode)")
     p.add_argument("--wsi-dir", type=Path, default=Path("/tmp/faith/slides"))
     p.add_argument("--mask-dir", type=Path, default=Path("/tmp/faith/tissue_masks"))
     p.add_argument("--output-json", type=Path, default=Path("/tmp/faith/output/overall-survival-years.json"))
@@ -200,7 +200,7 @@ def read_wsi_header_safe(path: Path) -> dict:
 
 
 def open_tissue_mask(path: Path, header: dict, level: int = 1) -> TissueMask:
-    """TissueMask on mask level 1, as in training. If the tags do not match the pyramid geometry TRACE expects
+    """TissueMask on mask level 1, as in training. If the tags do not match the pyramid geometry FaithMIL expects
     (the files on Grand Challenge are re-encoded by panimg), fall back to the downsample implied by the shapes."""
     if header["res_l0"] is not None:
         try:

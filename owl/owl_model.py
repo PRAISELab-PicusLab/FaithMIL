@@ -1,4 +1,4 @@
-"""TRACE L1 model for the OWL container: tile reading, DINO L1 features, the fold x seed ABMIL ensemble and its exact
+"""FaithMIL L1 model for the OWL container: tile reading, DINO L1 features, the fold x seed ABMIL ensemble and its exact
 attributions.
 
 The model (trained in exp_ctx_l1l2/results/l1only_abmil_dino, 10 folds x 3 seeds on OWL RUMC + TCGA-PRAD) is gated-

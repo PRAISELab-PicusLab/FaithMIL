@@ -1,6 +1,6 @@
-# TRACE for the OWL challenge (Grand Challenge container)
+# FaithMIL for the OWL challenge (Grand Challenge container)
 
-Container of the TRACE submission to the [OWL challenge](https://owl.grand-challenge.org/) (WACV 2027): from one
+Container of the FaithMIL submission to the [OWL challenge](https://owl.grand-challenge.org/) (WACV 2027): from one
 prostatectomy H&E slide and its tissue mask it predicts the time to biochemical recurrence (BCR), a risk class, an
 attribution heatmap and a pathology report.
 

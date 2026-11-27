@@ -1,4 +1,4 @@
-"""Collect a trained TRACE run into owl/model/ (the model tarball, extracted to /opt/ml/model on Grand Challenge).
+"""Collect a trained FaithMIL run into owl/model/ (the model tarball, extracted to /opt/ml/model on Grand Challenge).
 
     python owl/export_deploy.py --data-root /path/to/wacv_challenge
 

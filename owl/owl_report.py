@@ -25,7 +25,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.backends.backend_pdf import PdfPages  # noqa: E402
-from matplotlib.colors import TwoSlopeNorm  # noqa: E402
+from matplotlib.colors import TwoSlopeNorm, rgb_to_hsv  # noqa: E402
 from matplotlib.patches import Rectangle  # noqa: E402
 
 A4 = (8.27, 11.69)
@@ -43,12 +43,16 @@ def thumbnail(rd: TiledPyramid, max_side: int = 2000):
     return rd.read_region(k, 0, 0, W, H), 4 ** k
 
 
-def tissue_fraction(rgb: np.ndarray) -> float:
-    """Share of stained pixels: HSV saturation >= 0.07 and not near-black (ink, pen)."""
-    f = rgb.astype(np.float32) / 255
-    mx, mn = f.max(axis=2), f.min(axis=2)
-    sat = (mx - mn) / np.maximum(mx, 1e-6)
-    return float(((sat >= 0.07) & (mx > 0.25)).mean())
+def shows_tissue(rgb: np.ndarray) -> bool:
+    """True if at least 25% of the tile is H&E-stained (HSV saturation >= 0.07, not near-black, hue of eosin or
+    haematoxylin: >= 210 or < 20 deg) and at most 12% of the non-background pixels are dark (V < 0.35). Marker ink
+    fails: green-blue ink by its hue, black ink by its dark pixels (H&E tissue, dense lymphocytes included, stays below
+    ~7%)."""
+    hsv = rgb_to_hsv(rgb.astype(np.float32) / 255)
+    hue, sat, val = hsv[..., 0] * 360, hsv[..., 1], hsv[..., 2]
+    stained = (sat >= 0.07) & (val > 0.25) & ((hue >= 210) | (hue < 20))
+    dark = val < 0.35
+    return stained.mean() >= 0.25 and dark.sum() <= 0.12 * max((dark | (sat >= 0.07)).sum(), 1)
 
 
 def _paint(shape, x, y, values, side_l0, ds, fill=np.nan):
@@ -89,7 +93,7 @@ def make_report(path: Path, wsi_path: Path, children: pd.DataFrame, phi: np.ndar
     if len(children) == 0:  # no tissue tile: the prediction is the cohort median
         with PdfPages(path) as pdf:
             fig = plt.figure(figsize=A4)
-            fig.text(0.07, 0.95, "TRACE  -  Biochemical recurrence after radical prostatectomy", fontsize=14, weight="bold")
+            fig.text(0.07, 0.95, "FaithMIL  -  Biochemical recurrence after radical prostatectomy", fontsize=14, weight="bold")
             fig.text(0.07, 0.91, "The tissue mask contains no analysable tissue tile. The reported values "
                                  f"({years:.1f} years, {risk_class}) are the training-cohort median, not a prediction.",
                      fontsize=9, wrap=True)
@@ -119,11 +123,11 @@ def make_report(path: Path, wsi_path: Path, children: pd.DataFrame, phi: np.ndar
         """The first n_top tiles of `order` on the `sign` side that show tissue (the mask is coarse: some kept tiles
         are mostly background or ink); returns (tiles, number skipped)."""
         shown, skipped = [], 0
-        for i in order[:50 * n_top]:
+        for i in order[:100 * n_top]:
             if len(shown) == n_top or np.sign(phi[i]) != sign:
                 break
             rgb = tile_rgb(i)
-            if tissue_fraction(rgb) < 0.25:
+            if not shows_tissue(rgb):
                 skipped += 1
                 continue
             shown.append((i, rgb))
@@ -139,38 +143,46 @@ def make_report(path: Path, wsi_path: Path, children: pd.DataFrame, phi: np.ndar
         # ------------------------------------------------------------------ page 1
         fig = plt.figure(figsize=A4)
         gs = fig.add_gridspec(4, 2, height_ratios=[1.05, 1.5, 1.5, 1.2], hspace=0.35, wspace=0.15,
-                              left=0.07, right=0.95, top=0.95, bottom=0.05)
+                              left=0.07, right=0.93, top=0.95, bottom=0.05)
         ax = fig.add_subplot(gs[0, :])
         _box_off(ax)
-        _text(ax, 0, 1.0, "TRACE  -  Biochemical recurrence after radical prostatectomy", fontsize=14, weight="bold")
+        _text(ax, 0, 1.0, "FaithMIL  -  Biochemical recurrence after radical prostatectomy", fontsize=14, weight="bold")
         _text(ax, 0, 0.84, f"Slide {wsi_path.stem}  |  H&E, provided tissue mask  |  research use only, not a clinical "
                            "device", fontsize=7.5, color=MUTED)
-        years_txt = f"{years:.1f} years" + (f"  (beyond the longest follow-up of the training cohort, {max_fu:.0f} y: "
-                                            "read as 'long')" if years > max_fu else "")
         _text(ax, 0, 0.66, "Predicted median time to recurrence", fontsize=9, color=MUTED)
-        _text(ax, 0, 0.56, years_txt, fontsize=12, weight="bold")
+        _text(ax, 0, 0.56, f"{years:.1f} years", fontsize=12, weight="bold")
+        if years > max_fu:
+            _text(ax, 0.32, 0.545, f"beyond the longest follow-up of the training cohort ({max_fu:.0f} y): read as 'long'",
+                  fontsize=8.5, color=MUTED)
         _text(ax, 0, 0.36, "Risk class", fontsize=9, color=MUTED)
         _text(ax, 0, 0.26, risk_class.upper(), fontsize=13, weight="bold", color=CLASS_COLOUR[risk_class])
         _text(ax, 0.32, 0.36, "Risk relative to the OWL training cohort", fontsize=9, color=MUTED)
         _text(ax, 0.32, 0.26, f"higher than {pct:.0f}% of the {len(cohort)} training patients (risk score z = {z:+.2f})",
               fontsize=10)
-        _text(ax, 0, 0.09, f"Evidence: {n_tiles:,} tissue tiles of 0.22 mm ({area_mm2:.0f} mm² of tissue). "
-                           f"The top 5% of the tiles carry {conc:.0%} of the total contribution."
-              + ("  The prediction is close to the cohort median: weak evidence for either direction." if weak else ""),
-              fontsize=8.5, wrap=True)
+        evidence = (f"Evidence: {n_tiles:,} tissue tiles of 0.22 mm ({area_mm2:.0f} mm² of tissue). "
+                    f"The top 5% of the tiles carry {conc:.0%} of the total contribution."
+                    + (" The prediction is close to the cohort median: weak evidence for either direction." if weak else ""))
+        _text(ax, 0, 0.12, "\n".join(textwrap.wrap(evidence, 125)), fontsize=8.5, linespacing=1.3)
 
         ax = fig.add_subplot(gs[1, 0])
         ax.imshow(thumb)
         ax.set_title("H&E", fontsize=9)
         ax.axis("off")
-        ax = fig.add_subplot(gs[1, 1])
+        # the map and its colour bar share the cell; the bar is then fitted to the height of the drawn image
+        sub = gs[1, 1].subgridspec(1, 2, width_ratios=[1, 0.035], wspace=0.04)
+        ax, cax = fig.add_subplot(sub[0]), fig.add_subplot(sub[1])
         ax.imshow(thumb, alpha=0.35)
         v = max(float(np.quantile(np.abs(phi), 0.99)), 1e-9)  # colour scale saturates at the 99th percentile
         im = ax.imshow(np.clip(phi_map, -v, v), cmap="RdBu_r", norm=TwoSlopeNorm(0, -v, v), interpolation="nearest")
-        ax.set_title("Tile contributions to the risk (red raises, blue lowers;\nscale saturated at the 99th percentile; "
-                     "boxes: top tiles)", fontsize=8.5)
+        ax.set_title("Tile contributions to the risk: red raises, blue lowers\n(scale saturated at the 99th "
+                     "percentile; boxes: top tiles)", fontsize=8.5)
         ax.axis("off")
-        fig.colorbar(im, ax=ax, fraction=0.035, pad=0.02, format="%.1e").ax.tick_params(labelsize=5.5)
+        cb = fig.colorbar(im, cax=cax)
+        cb.ax.tick_params(labelsize=6)
+        cb.ax.yaxis.get_offset_text().set_fontsize(6)
+        ax.apply_aspect()
+        p, q = ax.get_position(), cax.get_position()
+        cax.set_position([p.x1 + 0.01, p.y0, q.width, p.height])
         for i, _ in top_up:
             ax.add_patch(Rectangle(((x[i] - tile_side_l0 / 2) / ds, (y[i] - tile_side_l0 / 2) / ds), tile_side_l0 / ds,
                                    tile_side_l0 / ds, fill=False, ec="black", lw=0.8))
@@ -197,6 +209,8 @@ def make_report(path: Path, wsi_path: Path, children: pd.DataFrame, phi: np.ndar
         ax = fig.add_subplot(gs[3, :])
         ax.hist(cohort.z, bins=40, color="#c9c9c9")
         ax.axvline(z, color=CLASS_COLOUR[risk_class], lw=2)
+        ax.set_title("This patient within the OWL training cohort", fontsize=9)
+        ax.set_ylabel("patients", fontsize=8)
         ax.set_xlabel("risk score z of the training patients (this patient: coloured line)", fontsize=8)
         ax.tick_params(labelsize=7)
         ax.spines[["top", "right"]].set_visible(False)
