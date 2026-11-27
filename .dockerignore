@@ -1,0 +1,11 @@
+*
+!trace_mil/__init__.py
+!trace_mil/anchors.py
+!trace_mil/layout.py
+!trace_mil/wsi.py
+!owl/app.py
+!owl/inference.py
+!owl/owl_model.py
+!owl/owl_report.py
+!owl/requirements.txt
+**/__pycache__

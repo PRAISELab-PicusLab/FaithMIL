@@ -28,3 +28,9 @@ ontology/
 *.tif
 *.tiff
 *.log
+
+# OWL container: weights, calibration and the OWL training labels stay out of git (model.tar.gz only), as do test cases
+owl/model/*
+!owl/model/README.md
+owl/test/
+owl/*.tar.gz

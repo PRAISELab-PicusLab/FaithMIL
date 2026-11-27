@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import math
 import threading
+import warnings
 from collections import OrderedDict
 from pathlib import Path
 
@@ -80,7 +81,7 @@ class TiledPyramid:
     worker.
     """
 
-    def __init__(self, path: Path | str, max_native_level: int = 4, tile_cache_tiles: int = 256):
+    def __init__(self, path: Path | str, max_native_level: int = 4, tile_cache_tiles: int = 256, strict: bool = True):
         self.path = Path(path)
         self._tif = tifffile.TiffFile(self.path)
         levels = self._tif.series[0].levels
@@ -92,16 +93,20 @@ class TiledPyramid:
         self.res_l0 = resolution_px_per_unit(self.pages[0])
 
         for k, page in enumerate(self.pages):
+            problem = None
             if not page.is_tiled:
-                raise RuntimeError(f"{self.path.name} L{k} is not tiled")
-            if page.samplesperpixel < 3 or page.planarconfig != 1:
-                raise RuntimeError(f"{self.path.name} L{k}: expected contiguous RGB, got spp={page.samplesperpixel}")
-            ratio = self.res_l0 / resolution_px_per_unit(page)
-            if abs(ratio - level_downsample(k)) > 1e-3 * level_downsample(k):
-                raise RuntimeError(
-                    f"{self.path.name} L{k}: resolution-tag downsample {ratio:.4f} != 4**{k}. "
-                    "The pyramid geometry assumed by TRACE does not hold."
-                )
+                problem = f"{self.path.name} L{k} is not tiled"
+            elif page.samplesperpixel < 3 or page.planarconfig != 1:
+                problem = f"{self.path.name} L{k}: expected contiguous RGB, got spp={page.samplesperpixel}"
+            else:
+                ratio = self.res_l0 / resolution_px_per_unit(page)
+                if abs(ratio - level_downsample(k)) > 1e-3 * level_downsample(k):
+                    problem = (f"{self.path.name} L{k}: resolution-tag downsample {ratio:.4f} != 4**{k}. "
+                               "The pyramid geometry assumed by TRACE does not hold.")
+            if problem and strict:
+                raise RuntimeError(problem)
+            if problem:
+                warnings.warn(problem)
 
         self._cache: OrderedDict = OrderedDict()
         self._cache_size = tile_cache_tiles

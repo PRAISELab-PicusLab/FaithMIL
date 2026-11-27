@@ -40,7 +40,14 @@ def _mask(layout: Layout, case: str, mask_level: int):
 
 def tree_case(layout: Layout, case: str, t2: float, t1: float, mask_level: int):
     header, mask = _mask(layout, case, mask_level)
-    W0, H0 = header["width_l0"], header["height_l0"]
+    parents, children = tree_anchors(mask, header["width_l0"], header["height_l0"], t2, t1)
+    info = {"case_id": case, "width_l0": header["width_l0"], "height_l0": header["height_l0"],
+            "n_parents": len(parents), "n_children": len(children)}
+    return parents, children, info
+
+
+def tree_anchors(mask: TissueMask, W0: int, H0: int, t2: float = 0.1, t1: float = 0.5):
+    """Parent (L2) and child (L1) anchors of one slide from its tissue mask, in memory."""
     n_cols, n_rows = int(np.ceil(W0 / S2)), int(np.ceil(H0 / S2))
     gy, gx = np.meshgrid(np.arange(n_rows), np.arange(n_cols), indexing="ij")
     gx, gy = gx.ravel(), gy.ravel()
@@ -67,8 +74,7 @@ def tree_case(layout: Layout, case: str, t2: float, t1: float, mask_level: int):
         "ci": np.tile(ci, len(par))[keep], "cj": np.tile(cj, len(par))[keep], "tissue_L1": np.round(tissue1[keep], 4)})
     children = children.sort_values(["y", "x"]).reset_index(drop=True)  # raster order: neighbours share image tiles
     children.insert(0, "anchor_id", np.arange(len(children)))
-    info = {"case_id": case, "width_l0": W0, "height_l0": H0, "n_parents": len(parents), "n_children": len(children)}
-    return parents, children, info
+    return parents, children
 
 
 def grid_case(layout: Layout, case: str, level: int, t: float, mask_level: int):

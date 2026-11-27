@@ -1,0 +1,9 @@
+# torch and numpy come with the base image (pytorch/pytorch:2.13.0-cuda12.6-cudnn9-runtime)
+pandas==2.3.3
+tifffile==2025.9.9
+imagecodecs==2025.8.2
+matplotlib==3.11.2
+timm==1.0.29
+
+fastapi
+uvicorn
